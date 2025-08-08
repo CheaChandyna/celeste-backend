@@ -1,22 +1,10 @@
-import mysql from 'mysql2'
-import bcrypt, { compare } from 'bcrypt'
-import 'dotenv/config' 
+import mongoose from 'mongoose';
+import users from '../Schema/users.model.js';
+import bcrypt from 'bcrypt'
+import 'dotenv/config'
 
-const db = mysql.createPool( {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-} ).promise()
+mongoose.connection
 
-try {
-    const [rows] = await db.query("SELECT 1");
-    console.log("Connected!");
-} catch (error) {
-    console.log("Fail to connect!", error);
-}
-    
 export async function createUser(username, password) {
     const hashPassord = await bcrypt.hash(password, 10)
 
@@ -44,14 +32,10 @@ export async function isUsernameExists(username) {
 }
 
 export async function compareCredentials(username, password) {
-    const [userInQuestion] = await db.query("SELECT password from users WHERE username = ? ", [username])
-        if(userInQuestion.length === 0) return false
+    const userInQuestion = await users.findOne({ UserName: username }).select('HashPassword');
+    if (!userInQuestion) return false;
 
-    const isItMatch = bcrypt.compare(password, userInQuestion[0].password)
-        if(isItMatch) return true
-}
-
-export async function getData() {
-    const result = await db.query('Select * from users')
-    return result
+    // Await bcrypt.compare and use the correct property name
+    const isItMatch = await bcrypt.compare(password, userInQuestion.HashPassword);
+    return isItMatch;
 }
