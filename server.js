@@ -5,7 +5,8 @@ import bcrypt from 'bcrypt'
 import db from './src/config/dbConnection.js';
 import errorHandling from './src/middleware/errorHandler.js';
 import createUserTable from './src/data/createUserTable.js';
-// import userRoute from './src/routes/userRout.js'
+import authRoute from './src/routes/authRouter.js'
+import userRoute from './src/routes/userRouter.js'
 
 const app = express();
 const port = 3000;
@@ -13,10 +14,11 @@ const port = 3000;
 //<iddleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:5173' }));
 
 //route for users services
-// app.use("/api", userRoute);
+app.use("/auth", authRoute);
+app.use("/api", userRoute);
 
 //errror handler middleware
 app.use(errorHandling);
@@ -32,9 +34,9 @@ app.listen(port, () => {
   console.log(`\nServer is running on http://localhost:${port}.....`);
 });
 
-app.post('/signup', async (request, response) => {
+// app.post('/signup', async (request, response) => {
 
-});
+// });
 
 // app.post('/signup', async (request, response) => {
 //   // Check if the user already exists
