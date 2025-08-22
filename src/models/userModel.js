@@ -8,13 +8,13 @@ export const createUserService = async(username, firstName, lastName, email, has
   return result.rows[0];
 };
 
-export const isUserExist = async (username, hashPassword) => {
+export const isUserExist = async (username) => {
   const result = await db.query(
-    "SELECT hash_password FROM users WHERE username = $1",
+    "SELECT id, username, email, hash_password FROM users WHERE username = $1",
     [username]
   );
   return result.rows[0];
-}
+};
 
 export const getUserByIdService = async (id) => {
   const result = await db.query(

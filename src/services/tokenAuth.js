@@ -1,7 +1,24 @@
 import jwt from 'jsonwebtoken'
 import 'dotenv/config'
 
-export function userToken(userInfo) {
-    const userToken = jwt.sign({exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, title: 'lord_abiter', userid: userInfo.id, username: userInfo.username}, process.env.SECRET_KEY)
-    return userToken
+export const generateAccessToken = async(userInfo) => {
+    const payload = { id: userInfo.id, username: userInfo.username ,email: userInfo.email };
+    const token = await jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1h" });
+    return token
 }
+
+const authenticationToken = async() => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.status(401).json({ message: "Not logged in" });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+
+  if (err) return res.status(403).json({ message: "Token invalid or expired" });
+  req.user = user; // user is logged in
+  next();
+});
+}
+
+export default generateAccessToken;

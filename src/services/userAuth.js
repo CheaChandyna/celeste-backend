@@ -1,9 +1,7 @@
-import mongoose from 'mongoose';
-import users from '../Schema/users.model.js';
-import bcrypt from 'bcrypt'
-import 'dotenv/config'
-
-mongoose.connection
+// import mongoose from 'mongoose';
+// import users from '../Schema/users.model.js';
+// import bcrypt from 'bcrypt'
+// import 'dotenv/config'
 
 // export async function createUser(username, password) {
 //     const hashPassord = await bcrypt.hash(password, 10)
