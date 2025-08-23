@@ -10,7 +10,7 @@ export const createUserService = async(username, firstName, lastName, email, has
 
 export const isUserExist = async (username) => {
   const result = await db.query(
-    "SELECT id, username, email, hash_password FROM users WHERE username = $1",
+    "SELECT id, username, email, hash_password FROM users WHERE username = $1 OR email = $1",
     [username]
   );
   return result.rows[0];
