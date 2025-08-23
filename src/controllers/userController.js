@@ -38,6 +38,10 @@ export const createUser = async (request, response, next) => {
 
 export const compareCredentials = async (request, response, next) => {
   const {username, password} = request.body;
+
+  console.log("=== BACKEND LOGIN DEBUG ===");
+  console.log("Received username:", username);
+  console.log("Received password:", password);
   
   try{
     const user = await isUserExist(username);
@@ -68,8 +72,8 @@ export const getUserById = async (request, response, next) => {
   try {
     const user = await getUserByIdService(request.params.id);
     if(!user)
-      return responseHandler(res, 404, "User not found.")
-    responseHandler(res, 200, "User Succesfully fetched!", newUser);
+      return responseHandler(response, 404, "User not found.")
+    responseHandler(response, 200, "User Succesfully fetched!", newUser);
   } catch(error) {
     next(error);
   }
