@@ -14,6 +14,19 @@ const port = 3000;
 //<iddleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// --- START: ADD THIS DEBUGGING BLOCK 
+// (just to look what it look like in postman)---
+// This middleware will run immediately after express.json()
+// and show us what the request body looks like.
+app.use((req, res, next) => {
+  console.log("--- Request Body Check ---");
+  console.log(req.body);
+  console.log("--------------------------");
+  next(); // This is crucial, it passes the request to the next step
+});
+// --- END: ADD THIS DEBUGGING BLOCK ---
+
 app.use(cors({ 
   origin: 'http://localhost:5173',
   credentials: true
