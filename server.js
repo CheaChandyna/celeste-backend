@@ -1,12 +1,11 @@
 import express from 'express';
-import 'dotenv/config'
 import cors from 'cors';
-import bcrypt from 'bcrypt'
 import db from './src/config/dbConnection.js';
 import errorHandling from './src/middleware/errorHandler.js';
 import createUserTable from './src/data/createUserTable.js';
 import authRoute from './src/routes/authRouter.js'
 import userRoute from './src/routes/userRouter.js'
+import 'dotenv/config'
 
 const app = express();
 const port = 3000;
@@ -53,5 +52,3 @@ app.listen(port, () => {
 app.get('/', (request, response) => {
   response.send("Server is up!");
 });
-
-

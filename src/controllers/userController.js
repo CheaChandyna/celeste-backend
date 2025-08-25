@@ -2,7 +2,8 @@
 import bcrypt from 'bcryptjs';
 import 'dotenv/config'
 import { createUserService, isUserExist, getUserByIdService } from "../models/userModel.js";
-import { generateAccessToken } from '../services/tokenAuth.js';
+import { generateAccessToken, generateReFreshToken } from '../services/tokenAuth.js';
+
 
 const responseHandler = (response, status, message, data = null) => {
   response.status(status).json({
@@ -12,7 +13,9 @@ const responseHandler = (response, status, message, data = null) => {
   });
 };
 
-export const createUser = async (request, response, next) => {
+
+// Signup
+export const registerController = async (request, response, next) => {
   console.log('Signup request:', request.body);
   const { username, firstName, lastName, email, password } = request.body;
 
@@ -27,29 +30,15 @@ export const createUser = async (request, response, next) => {
   try {
     const newUser = await createUserService(username, firstName, lastName, email, hashPassword);
 
-    //Will disscus this later
-
-    // const token = await generateAccessToken(newUser);
-    // console.log("Access token: ", token);
-
-    // response.cookie("access_token", token, {
-    //   httpOnly: true,
-    //   secure: true,      // HTTPS only
-    //   sameSite: "none", 
-    // });
-
     responseHandler(response, 200, "User Succesfully Created!", { user: newUser });
   } catch(error) {
     next(error);
   }
 }
 
-export const compareCredentials = async (request, response, next) => {
+// Login
+export const loginController = async (request, response, next) => {
   const {username, password} = request.body;
-
-  console.log("=== BACKEND LOGIN DEBUG ===");
-  console.log("Received username:", username);
-  console.log("Received password:", password);
   
   try{
     const user = await isUserExist(username);
@@ -63,33 +52,90 @@ export const compareCredentials = async (request, response, next) => {
     console.log("User is valid:", user);
 
     const token = await generateAccessToken(user);
-    // // console.log("Access token: ", token);
-    // response.cookie("access_token", token, {
-    //   httpOnly: true,
-    //   secure: true,
-    //   sameSite: "none",
-    // });
+    response.cookie("access_token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+    
+    const refreshToken = await generateReFreshToken(user);
+    response.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
 
-    //SEND the token in the response body using your responseHandler
-    responseHandler(response, 200, "User is valid.", { token });
 
-    // responseHandler(response, 200, "User is found/valid.", { user: user });
+    responseHandler(response, 200, "User is found/valid.", { user: user });
   } catch(error) {
     next(error);
   }
 }
 
+// Logout
+export const logoutController = (request, response, next) => {
+  try {
+    response.clearCookie("access_token", { 
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    response.clearCookie("refresh_token", { 
+      httpOnly: true, 
+      secure: true,
+      sameSite: "none",
+    });
+
+    responseHandler(response, 200, "Logged out successfully.");
+  } catch (error) {
+    console.log("Error in logout controller", error.message);
+
+    responseHandler(response, 500, "Internal Server Error.");
+    next(error);
+  }
+}
+
+// Token refresh
+export const tokenController = async (request, response, next) => {
+  const { refresh_token } = request.cookies;
+
+  try {
+    if (!refresh_token)
+      return responseHandler(response, 401, "No refresh token provided/Invalid.");
+
+    // verify the refresh token
+    await jwt.verify(refresh_token, process.env.REFRESH_KEY, async (err, user) => {
+      if (err) 
+        return responseHandler(response, 403, "Token invalid or expired.");
+
+      // and give em a new access token
+      const newToken = await generateAccessToken(request.user);
+      response.cookie("access_token", newToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
+
+      responseHandler(response, 200, "New access token generated.");
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get user information by ID for admin or other purposes (mostly dashboard)
 export const getUserById = async (request, response, next) => {
   try {
     const user = await getUserByIdService(request.params.id);
     if(!user)
       return responseHandler(response, 404, "User not found.")
+
     responseHandler(response, 200, "User Succesfully fetched!", user); //im not sure about newUser here
   } catch(error) {                                                     //im putting user (before: newUser, after: user)
     next(error);
   }
 }
-
 
 // Add this new function to src/controllers/userController.js
 export const getMe = async (request, response, next) => {
