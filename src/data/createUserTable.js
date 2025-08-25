@@ -7,22 +7,25 @@ const createUserTable = async () =>  {
       username VARCHAR(50) UNIQUE NOT NULL,
       first_name VARCHAR(50) NOT NULL,
       last_name VARCHAR(50) NOT NULL,
+      gender VARCHAR(10) DEFAULT NULL,
       email VARCHAR(100) UNIQUE NOT NULL,
+      phone VARCHAR(15) DEFAULT NULL,
+      nationality VARCHAR(50) DEFAULT NULL,
       hash_password VARCHAR(255) NOT NULL,
-      is_verified BOOLEAN DEFAULT FALSE,
-      creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       reset_password_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       user_role VARCHAR(20) DEFAULT 'customer',
       avatar_url VARCHAR(255) DEFAULT NULL,
       bio TEXT DEFAULT NULL,
+      is_verified BOOLEAN DEFAULT FALSE,
+      creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );`;
   try {
     const result = await db.query(UserTable);
     console.log('# Users table created successfully or already exsit.');
-} catch (error) {
+  } catch (error) {
     console.log('Error creating users table:', error);
-}
+  }
 }
 
 export default createUserTable;

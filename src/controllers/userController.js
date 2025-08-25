@@ -1,7 +1,7 @@
 // import bcrypt from 'bcrypt';
 import bcrypt from 'bcryptjs';
 import 'dotenv/config'
-import { createUserService, isUserExist, getUserByIdService } from "../models/userModel.js";
+import { createUserService, isUserExist, getUserByIdService, updateUserService } from "../models/userModel.js";
 import { generateAccessToken, generateReFreshToken } from '../services/tokenAuth.js';
 
 
@@ -125,9 +125,9 @@ export const tokenController = async (request, response, next) => {
 };
 
 // Get user information by ID for admin or other purposes (mostly dashboard)
-export const getUserById = async (request, response, next) => {
+export const getUserInfoController = async (request, response, next) => {
   try {
-    const user = await getUserByIdService(request.params.id);
+    const user = await getUserByIdService(request.user.id);
     if(!user)
       return responseHandler(response, 404, "User not found.")
 
@@ -137,22 +137,27 @@ export const getUserById = async (request, response, next) => {
   }
 }
 
-// Add this new function to src/controllers/userController.js
-export const getMe = async (request, response, next) => {
-  try {
-    // The authMiddleware has already verified the token and attached the
-    // user payload to req.user. We just use the ID from there.
-    const userId = request.user.id;
-    
-    const user = await getUserByIdService(userId);
-    
-    if(!user) {
-      // This is unlikely to happen if the token is valid, but it's good practice
-      return responseHandler(response, 404, "User from token not found.");
-    }
+export const updateUserController = async (request, response, next) => {
+  const id = request.user.id;
+  const { first_name, last_name, gender, email, phone, nationality, bio, avatar_URL } = request.body;
 
-    responseHandler(response, 200, "User profile fetched successfully!", user);
-  } catch(error) {
+  try {
+    const user = await getUserByIdService(id);
+
+    if (!user) {
+      return responseHandler(response, 404, "User not found.");
+    }
+    
+    let updateData = { first_name, last_name, gender, email, phone, nationality, bio, avatar_URL };
+    // filter out empty values
+    updateData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined && value !== null && value !== "")
+    );
+    
+    const updatedUser = await updateUserService(id, updateData);
+
+    responseHandler(response, 200, "User successfully updated!", updatedUser);
+  } catch (error) {
     next(error);
   }
 }

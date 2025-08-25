@@ -18,8 +18,24 @@ export const isUserExist = async (username) => {
 
 export const getUserByIdService = async (id) => {
   const result = await db.query(
-    "SELECT * FROM users WHERE id = $1",
+    "SELECT username, first_name, last_name, email, is_verified, creation_date, user_role, avatar_url, bio FROM users WHERE id = $1",
     [id]
   );
   return result.rows[0];
 };
+
+export const updateUserService = async (id, updateinfo) => {
+  const keys = Object.keys( updateinfo);
+  const values = Object.values( updateinfo);
+
+  //Build set string safely
+  const setString = keys.map((key, i) => `"${key}" = $${i + 1}`).join(', ');
+
+  values.push(id);
+  
+  const result = await db.query(
+    `UPDATE users SET ${setString} WHERE id = $${values.length} RETURNING username, first_name, last_name, email, is_verified, creation_date, user_role, avatar_URL, bio`,
+    values
+  );
+  return result.rows[0];
+}
